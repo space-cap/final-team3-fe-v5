@@ -1,4 +1,5 @@
 ﻿import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 import type { Session } from '../api/session'
 
@@ -15,19 +16,43 @@ const initialState: Session = {
   onboardingCompleted: false,
 }
 
-export const useSessionStore = create<SessionState>((set) => ({
-  ...initialState,
-  initialized: false,
-  setSession: (session) =>
-    set((state) => ({
-      ...state,
-      ...session,
-      initialized: true,
-    })),
-  resetSession: () =>
-    set((state) => ({
-      ...state,
+const memoryStorage: Storage = {
+  getItem: () => null,
+  setItem: () => undefined,
+  removeItem: () => undefined,
+  clear: () => undefined,
+  key: () => null,
+  get length() {
+    return 0
+  },
+}
+
+export const useSessionStore = create<SessionState>()(
+  persist(
+    (set) => ({
       ...initialState,
-      initialized: true,
-    })),
-}))
+      initialized: false,
+      setSession: (session) =>
+        set(() => ({
+          ...session,
+          initialized: true,
+        })),
+      resetSession: () =>
+        set(() => ({
+          ...initialState,
+          initialized: true,
+        })),
+    }),
+    {
+      name: 'session-store-v1',
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.sessionStorage : memoryStorage)),
+      partialize: (state) => ({
+        userId: state.userId,
+        displayName: state.displayName,
+        isAuthenticated: state.isAuthenticated,
+        onboardingCompleted: state.onboardingCompleted,
+        initialized: true,
+      }),
+    },
+  ),
+)

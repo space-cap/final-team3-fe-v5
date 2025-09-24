@@ -7,6 +7,7 @@ export type OnboardingStep = {
   title: string
   description: string
   completed: boolean
+  summary?: string
 }
 
 export type OnboardingStatus = {

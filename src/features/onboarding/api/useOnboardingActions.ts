@@ -5,6 +5,7 @@ import type { OnboardingStatus } from './useOnboardingStatus'
 
 export type CompleteStepPayload = {
   stepId: string
+  data?: Record<string, unknown>
 }
 
 export async function completeOnboardingStep(payload: CompleteStepPayload): Promise<OnboardingStatus> {
