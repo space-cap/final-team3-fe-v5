@@ -1,20 +1,43 @@
-﻿const mockHistory = [
-  {
-    id: '2025-09-22',
-    question: '오늘 하루를 돌아보며 가장 고마웠던 순간은?',
-    createdAt: '2025-09-22T21:35:00Z',
-    preview:
-      '퇴근길에 친구가 건넨 말 한마디 덕분에 마음이 풀렸어요. 덕분에 오늘 하루를 긍정적으로 마무리할 수 있었어요.',
-  },
-  {
-    id: '2025-09-21',
-    question: '이번 주에 실천한 작은 습관은 무엇이었나요?',
-    createdAt: '2025-09-21T22:10:00Z',
-    preview: '출근 전에 10분간 스트레칭을 하며 몸을 깨웠고, 덕분에 오전 집중력이 좋아졌어요.',
-  },
-]
+import { useAnswerHistory } from './api/useAnswerHistory'
 
 export function HistoryPage() {
+  const { data, isLoading, isError, refetch } = useAnswerHistory()
+
+  if (isLoading) {
+    return (
+      <section className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
+        <header className='space-y-2'>
+          <div className='h-5 w-28 animate-pulse rounded-full bg-surface-muted' />
+          <div className='h-4 w-56 animate-pulse rounded-full bg-surface-muted' />
+        </header>
+        <div className='space-y-3'>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className='space-y-3 rounded-xl border border-divider bg-surface p-4'>
+              <div className='h-3 w-32 animate-pulse rounded-full bg-surface-muted' />
+              <div className='h-4 w-2/3 animate-pulse rounded-full bg-surface-muted' />
+              <div className='h-12 w-full animate-pulse rounded-lg bg-surface-muted' />
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <section className='space-y-4 rounded-xl bg-surface-contrast p-6 text-sm text-muted shadow-card'>
+        <p>답변 히스토리를 불러오는 데 문제가 발생했어요.</p>
+        <button
+          type='button'
+          onClick={() => refetch()}
+          className='rounded-full border border-divider px-4 py-2 text-muted transition hover:border-primary hover:text-primary'
+        >
+          다시 시도
+        </button>
+      </section>
+    )
+  }
+
   return (
     <section className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
       <header className='space-y-2'>
@@ -23,13 +46,13 @@ export function HistoryPage() {
       </header>
 
       <div className='flex flex-col gap-4'>
-        {mockHistory.map((item) => (
+        {data.map((item) => (
           <article key={item.id} className='space-y-3 rounded-xl border border-divider bg-surface p-4 transition hover:border-primary/70'>
-            <div className='flex items-center justify-between text-xs text-muted'>
+            <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-muted'>
               <span>{new Date(item.createdAt).toLocaleString('ko-KR')}</span>
               <span className='rounded-full bg-surface-muted px-3 py-1 font-medium text-muted'>Day {item.id}</span>
             </div>
-            <h3 className='text-sm font-semibold text-foreground'>{item.question}</h3>
+            <h3 className='text-sm font-semibold text-foreground'>{item.questionTitle}</h3>
             <p className='text-sm leading-relaxed text-muted'>{item.preview}</p>
           </article>
         ))}

@@ -12,7 +12,9 @@ export type DailyQuestion = {
 }
 
 const fetchDailyQuestion = async (): Promise<DailyQuestion> => {
-  const response = await fetch('/api/questions/daily')
+  const response = await fetch('/api/questions/daily', {
+    credentials: 'include',
+  })
 
   if (!response.ok) {
     throw new Error('오늘의 질문을 불러오지 못했습니다.')

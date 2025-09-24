@@ -1,4 +1,8 @@
-﻿import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { NavLink, Outlet, useLoaderData } from 'react-router-dom'
+
+import type { Session } from '../api/session'
+import { useSessionStore } from '../store'
 
 function navClass(isActive: boolean) {
   return [
@@ -8,6 +12,13 @@ function navClass(isActive: boolean) {
 }
 
 export function RootLayout() {
+  const { session } = useLoaderData() as { session: Session }
+  const setSession = useSessionStore((state) => state.setSession)
+
+  useEffect(() => {
+    setSession(session)
+  }, [session, setSession])
+
   return (
     <div className='min-h-screen bg-surface text-foreground'>
       <header className='border-b border-divider bg-surface-contrast/80 backdrop-blur'>
@@ -16,17 +27,22 @@ export function RootLayout() {
             <p className='text-xs font-semibold uppercase tracking-[0.2em] text-muted'>Daily Reflection</p>
             <h1 className='text-2xl font-semibold text-foreground'>Q&A 케어 저널</h1>
           </div>
-          <nav className='flex items-center gap-4 text-sm font-medium text-muted'>
-            <NavLink to='/today' className={({ isActive }) => navClass(isActive)}>
-              오늘의 질문
-            </NavLink>
-            <NavLink to='/history' className={({ isActive }) => navClass(isActive)}>
-              답변 히스토리
-            </NavLink>
-            <NavLink to='/onboarding' className={({ isActive }) => navClass(isActive)}>
-              온보딩
-            </NavLink>
-          </nav>
+          <div className='flex items-center gap-6'>
+            <nav className='flex items-center gap-4 text-sm font-medium text-muted'>
+              <NavLink to='/today' className={({ isActive }) => navClass(isActive)}>
+                오늘의 질문
+              </NavLink>
+              <NavLink to='/history' className={({ isActive }) => navClass(isActive)}>
+                답변 히스토리
+              </NavLink>
+              <NavLink to='/onboarding' className={({ isActive }) => navClass(isActive)}>
+                온보딩
+              </NavLink>
+            </nav>
+            <div className='rounded-full border border-divider px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted'>
+              {session.displayName}
+            </div>
+          </div>
         </div>
       </header>
 
