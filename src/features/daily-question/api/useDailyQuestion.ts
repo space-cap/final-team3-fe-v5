@@ -12,15 +12,14 @@ export type DailyQuestion = {
 }
 
 const fetchDailyQuestion = async (): Promise<DailyQuestion> => {
-  await new Promise((resolve) => setTimeout(resolve, 120))
+  const response = await fetch('/api/questions/daily')
 
-  return {
-    id: new Date().toISOString().slice(0, 10),
-    title: '오늘 하루를 돌아볼 때 가장 고마웠던 순간은 언제였나요?',
-    body: '감사함을 느낀 이유와 그 순간이 지금의 나에게 어떤 의미였는지 적어보세요.',
-    category: '감사',
-    dayIndex: 142,
+  if (!response.ok) {
+    throw new Error('오늘의 질문을 불러오지 못했습니다.')
   }
+
+  const result = (await response.json()) as DailyQuestion
+  return result
 }
 
 export function useDailyQuestion() {
