@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { fetchJson } from '../../../app/api/client'
 import { useQuestionStore } from '../../../app/store'
 
 export type DailyQuestion = {
@@ -12,16 +13,7 @@ export type DailyQuestion = {
 }
 
 const fetchDailyQuestion = async (): Promise<DailyQuestion> => {
-  const response = await fetch('/api/questions/daily', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('오늘의 질문을 불러오지 못했습니다.')
-  }
-
-  const result = (await response.json()) as DailyQuestion
-  return result
+  return fetchJson<DailyQuestion>('/api/questions/daily')
 }
 
 export function useDailyQuestion() {

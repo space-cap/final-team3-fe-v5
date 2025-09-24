@@ -1,5 +1,7 @@
 ﻿import { useQuery } from '@tanstack/react-query'
 
+import { fetchJson } from '../../../app/api/client'
+
 export type AnswerHistoryItem = {
   id: string
   questionTitle: string
@@ -8,15 +10,7 @@ export type AnswerHistoryItem = {
 }
 
 export async function fetchAnswerHistory(): Promise<AnswerHistoryItem[]> {
-  const response = await fetch('/api/answers/history', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('답변 히스토리를 불러오지 못했습니다.')
-  }
-
-  return (await response.json()) as AnswerHistoryItem[]
+  return fetchJson<AnswerHistoryItem[]>('/api/answers/history')
 }
 
 export function useAnswerHistory() {

@@ -1,7 +1,37 @@
+﻿import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { useSessionStore } from '../../app/store'
+import { useCompleteOnboardingStep } from './api/useOnboardingActions'
 import { useOnboardingStatus } from './api/useOnboardingStatus'
 
 export function OnboardingPage() {
+  const navigate = useNavigate()
+  const sessionSnapshot = useSessionStore((state) => ({
+    userId: state.userId,
+    displayName: state.displayName,
+    isAuthenticated: state.isAuthenticated,
+    onboardingCompleted: state.onboardingCompleted,
+  }))
+  const setSession = useSessionStore((state) => state.setSession)
   const { data, isLoading, isError, refetch } = useOnboardingStatus()
+  const completeStepMutation = useCompleteOnboardingStep()
+
+  const allCompleted = useMemo(() => data?.steps.every((step) => step.completed) ?? false, [data])
+
+  const handleStepComplete = (stepId: string) => {
+    completeStepMutation.mutate(
+      { stepId },
+      {
+        onSuccess: (status) => {
+          if (status.steps.every((step) => step.completed)) {
+            setSession({ ...sessionSnapshot, onboardingCompleted: true })
+            navigate('/today', { replace: true })
+          }
+        },
+      },
+    )
+  }
 
   if (isLoading) {
     return (
@@ -51,14 +81,25 @@ export function OnboardingPage() {
             <span className='mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-muted text-xs font-semibold text-muted'>
               {index + 1}
             </span>
-            <div className='space-y-1'>
-              <p className='text-sm font-semibold text-foreground'>{step.title}</p>
-              <p className='text-xs leading-relaxed text-muted'>{step.description}</p>
+            <div className='flex-1 space-y-2'>
+              <div>
+                <p className='text-sm font-semibold text-foreground'>{step.title}</p>
+                <p className='text-xs leading-relaxed text-muted'>{step.description}</p>
+              </div>
               {step.completed ? (
                 <span className='inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
                   완료됨
                 </span>
-              ) : null}
+              ) : (
+                <button
+                  type='button'
+                  onClick={() => handleStepComplete(step.id)}
+                  disabled={completeStepMutation.isPending}
+                  className='rounded-full border border-primary px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60'
+                >
+                  단계 완료 표시
+                </button>
+              )}
             </div>
           </li>
         ))}
@@ -68,6 +109,16 @@ export function OnboardingPage() {
         <p className='rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-xs text-primary'>
           다음 알림 예정 시각: {new Date(data.nextReminderAt).toLocaleString('ko-KR')}
         </p>
+      ) : null}
+
+      {allCompleted ? (
+        <div className='rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary'>
+          모든 온보딩 단계가 완료되었습니다. 이제 오늘의 질문으로 이동해보세요.
+        </div>
+      ) : null}
+
+      {completeStepMutation.isError ? (
+        <p className='text-xs text-red-500'>단계 완료 처리 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
       ) : null}
     </section>
   )

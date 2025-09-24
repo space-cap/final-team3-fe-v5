@@ -1,5 +1,7 @@
 ﻿import { useQuery } from '@tanstack/react-query'
 
+import { fetchJson } from '../../../app/api/client'
+
 export type OnboardingStep = {
   id: string
   title: string
@@ -13,15 +15,7 @@ export type OnboardingStatus = {
 }
 
 async function fetchOnboardingStatus(): Promise<OnboardingStatus> {
-  const response = await fetch('/api/onboarding/status', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('온보딩 정보를 불러오지 못했습니다.')
-  }
-
-  return (await response.json()) as OnboardingStatus
+  return fetchJson<OnboardingStatus>('/api/onboarding/status')
 }
 
 export function useOnboardingStatus() {

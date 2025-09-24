@@ -1,8 +1,9 @@
 ﻿import { http, HttpResponse } from 'msw'
 
 import type { OnboardingStatus } from '../../features/onboarding'
+import { getSessionPayload, setSessionPayload } from './sessionHandlers'
 
-const status: OnboardingStatus = {
+let status: OnboardingStatus = {
   steps: [
     {
       id: 'step-1',
@@ -26,6 +27,36 @@ const status: OnboardingStatus = {
   nextReminderAt: '2025-09-25T09:00:00Z',
 }
 
+function markStepComplete(stepId: string) {
+  status = {
+    ...status,
+    steps: status.steps.map((step) =>
+      step.id === stepId
+        ? {
+            ...step,
+            completed: true,
+          }
+        : step,
+    ),
+  }
+
+  const allCompleted = status.steps.every((step) => step.completed)
+  if (allCompleted) {
+    const session = getSessionPayload()
+    setSessionPayload({ ...session, onboardingCompleted: true })
+  }
+}
+
 export const onboardingHandlers = [
   http.get('/api/onboarding/status', () => HttpResponse.json(status)),
+  http.patch('/api/onboarding/status', async ({ request }) => {
+    const body = (await request.json()) as { stepId?: string }
+
+    if (!body.stepId) {
+      return HttpResponse.json(status, { status: 400 })
+    }
+
+    markStepComplete(body.stepId)
+    return HttpResponse.json(status)
+  }),
 ]
