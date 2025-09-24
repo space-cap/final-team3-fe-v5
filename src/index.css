@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #4c6fff;
+  --color-primary-foreground: #f7faff;
+  --color-surface: #f5f6fb;
+  --color-surface-contrast: #ffffff;
+  --color-surface-muted: #e9ecf8;
+  --color-foreground: #1d2333;
+  --color-muted: #5b6478;
+  --color-divider: #d7dbe8;
+  --color-accent: #ff8866;
+  --font-sans: 'Pretendard Variable', Inter, system-ui, sans-serif;
+  --shadow-card: 0 20px 45px -20px rgba(33, 42, 69, 0.25);
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-surface font-sans text-foreground antialiased;
+}
+
+a {
+  @apply text-primary transition-colors duration-150;
+}
+
+a:hover {
+  @apply text-primary-foreground;
+}
+
+button {
+  @apply font-medium;
+}
