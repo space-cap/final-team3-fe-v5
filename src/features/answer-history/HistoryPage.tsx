@@ -5,7 +5,7 @@ export function HistoryPage() {
 
   if (isLoading) {
     return (
-      <section className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
+      <section data-testid='history-list-section' className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
         <header className='space-y-2'>
           <div className='h-5 w-28 animate-pulse rounded-full bg-surface-muted' />
           <div className='h-4 w-56 animate-pulse rounded-full bg-surface-muted' />
@@ -47,7 +47,7 @@ export function HistoryPage() {
 
       <div className='flex flex-col gap-4'>
         {data.map((item) => (
-          <article key={item.id} className='space-y-3 rounded-xl border border-divider bg-surface p-4 transition hover:border-primary/70'>
+          <article data-testid='history-item' key={item.id} className='space-y-3 rounded-xl border border-divider bg-surface p-4 transition hover:border-primary/70'>
             <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-muted'>
               <span>{new Date(item.createdAt).toLocaleString('ko-KR')}</span>
               <span className='rounded-full bg-surface-muted px-3 py-1 font-medium text-muted'>Day {item.id}</span>

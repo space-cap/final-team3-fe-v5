@@ -3,7 +3,7 @@
 import type { OnboardingStatus } from '../../features/onboarding'
 import { getSessionPayload, setSessionPayload } from './sessionHandlers'
 
-let status: OnboardingStatus = {
+const initialStatus: OnboardingStatus = {
   steps: [
     {
       id: 'step-1',
@@ -26,6 +26,19 @@ let status: OnboardingStatus = {
     },
   ],
   nextReminderAt: '2025-09-25T09:00:00Z',
+}
+
+function cloneStatus(source: OnboardingStatus): OnboardingStatus {
+  return {
+    ...source,
+    steps: source.steps.map((step) => ({ ...step })),
+  }
+}
+
+let status: OnboardingStatus = cloneStatus(initialStatus)
+
+export function resetOnboardingStatus() {
+  status = cloneStatus(initialStatus)
 }
 
 function createSummary(stepId: string, data?: Record<string, unknown>) {

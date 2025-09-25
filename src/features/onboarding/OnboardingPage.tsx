@@ -14,13 +14,6 @@ const channelOptions = [
 
 export function OnboardingPage() {
   const navigate = useNavigate()
-  const sessionSnapshot = useSessionStore((state) => ({
-    userId: state.userId,
-    displayName: state.displayName,
-    isAuthenticated: state.isAuthenticated,
-    onboardingCompleted: state.onboardingCompleted,
-  }))
-  const setSession = useSessionStore((state) => state.setSession)
   const { data, isLoading, isError, refetch } = useOnboardingStatus()
   const completeStepMutation = useCompleteOnboardingStep()
 
@@ -52,7 +45,13 @@ export function OnboardingPage() {
       {
         onSuccess: (status) => {
           if (status.steps.every((step) => step.completed)) {
-            setSession({ ...sessionSnapshot, onboardingCompleted: true })
+            const store = useSessionStore.getState()
+            store.setSession({
+              userId: store.userId,
+              displayName: store.displayName,
+              isAuthenticated: store.isAuthenticated,
+              onboardingCompleted: true,
+            })
             navigate('/today', { replace: true })
           }
           if (stepId === 'step-3') {
@@ -171,6 +170,7 @@ export function OnboardingPage() {
       case 'step-2':
         return (
           <form
+            data-testid='onboarding-step-2-form'
             className='space-y-3'
             onSubmit={(event) => {
               event.preventDefault()
@@ -186,6 +186,7 @@ export function OnboardingPage() {
                 알림 시간
                 <input
                   type='time'
+                  data-testid='reminder-time-input'
                   value={reminderTime}
                   onChange={(event) => setReminderTime(event.target.value)}
                   className='mt-1 rounded-xl border border-divider bg-surface px-4 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
@@ -196,6 +197,7 @@ export function OnboardingPage() {
                 <div className='mt-1 flex gap-2'>
                   {channelOptions.map((channel) => (
                     <button
+                      data-testid={`channel-option-${channel.id}`}
                       key={channel.id}
                       type='button'
                       onClick={() => setReminderChannel(channel.id as 'email' | 'push')}
@@ -216,6 +218,7 @@ export function OnboardingPage() {
 
             <button
               type='submit'
+              data-testid='submit-step-2'
               disabled={isSubmitting}
               className='rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
             >
@@ -226,6 +229,7 @@ export function OnboardingPage() {
       case 'step-3':
         return (
           <form
+            data-testid='onboarding-step-3-form'
             className='space-y-3'
             onSubmit={(event) => {
               event.preventDefault()
@@ -241,6 +245,7 @@ export function OnboardingPage() {
             </label>
             <textarea
               id='first-reflection'
+              data-testid='first-reflection-input'
               value={initialReflection}
               onChange={(event) => setInitialReflection(event.target.value)}
               placeholder='오늘의 질문에 대한 생각을 자유롭게 적어보세요.'
@@ -254,6 +259,7 @@ export function OnboardingPage() {
 
             <button
               type='submit'
+              data-testid='submit-step-3'
               disabled={isSubmitting}
               className='rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
             >

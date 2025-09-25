@@ -2,15 +2,21 @@
 
 import type { Session } from '../../app/api/session'
 
-let sessionPayload: Session = {
+const initialSessionPayload: Session = {
   userId: 'user-001',
   displayName: '김온유',
   isAuthenticated: true,
   onboardingCompleted: false,
 }
 
+let sessionPayload: Session = { ...initialSessionPayload }
+
 export function setSessionPayload(next: Session) {
   sessionPayload = next
+}
+
+export function resetSessionPayload() {
+  sessionPayload = { ...initialSessionPayload }
 }
 
 export function getSessionPayload() {

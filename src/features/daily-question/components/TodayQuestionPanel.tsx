@@ -50,33 +50,35 @@ export function TodayQuestionPanel() {
 
   return (
     <section className='grid gap-6 lg:grid-cols-[2fr,3fr]'>
-      <article className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
+      <article data-testid='daily-question-card' className='space-y-4 rounded-xl bg-surface-contrast p-6 shadow-card'>
         <span className='inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted'>
           Day {data.dayIndex}
         </span>
         <header className='space-y-2'>
           <h2 className='text-sm font-medium text-muted'>{data.category}</h2>
-          <h1 className='text-2xl font-semibold text-foreground'>{data.title}</h1>
+          <h1 data-testid='daily-question-title' className='text-2xl font-semibold text-foreground'>{data.title}</h1>
         </header>
-        <p className='text-base leading-relaxed text-muted'>{data.body}</p>
+        <p data-testid='daily-question-body' className='text-base leading-relaxed text-muted'>{data.body}</p>
       </article>
 
-      <form onSubmit={handleSubmit} className='flex flex-col rounded-xl bg-surface-contrast p-6 shadow-card'>
+      <form data-testid='daily-answer-form' onSubmit={handleSubmit} className='flex flex-col rounded-xl bg-surface-contrast p-6 shadow-card'>
         <label htmlFor='daily-answer' className='mb-2 text-sm font-medium text-muted'>
           오늘의 답변
         </label>
         <textarea
           id='daily-answer'
+          data-testid='daily-answer-textarea'
           value={draft}
           onChange={(event) => updateDraft(event.target.value)}
           placeholder='오늘의 질문에 대한 생각을 자유롭게 적어보세요.'
           className='min-h-[220px] flex-1 resize-none rounded-xl border border-divider bg-surface px-4 py-3 text-sm leading-relaxed text-foreground shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40'
         />
         <div className='mt-4 flex items-center justify-between text-xs text-muted'>
-          <span>{draft.trim().length}자</span>
+          <span data-testid='daily-answer-char-count'>{draft.trim().length}자</span>
           <div className='flex items-center gap-2'>
             <button
               type='button'
+              data-testid='daily-answer-reset'
               onClick={() => resetDraft()}
               className='rounded-full border border-divider px-4 py-2 text-muted hover:border-primary hover:text-primary'
             >
@@ -84,6 +86,7 @@ export function TodayQuestionPanel() {
             </button>
             <button
               type='submit'
+              data-testid='daily-answer-submit'
               disabled={!draft.trim()}
               className='rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-surface-contrast'
             >

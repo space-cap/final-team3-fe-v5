@@ -1,4 +1,4 @@
-﻿import type { LoaderFunctionArgs } from 'react-router-dom'
+import type { LoaderFunctionArgs } from 'react-router-dom'
 import { redirect } from 'react-router-dom'
 
 import { fetchSession } from '../api/session'

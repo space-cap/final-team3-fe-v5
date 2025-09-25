@@ -1,8 +1,14 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLoaderData } from 'react-router-dom'
 
 import type { Session } from '../api/session'
 import { useSessionStore } from '../store'
+
+declare global {
+  interface Window {
+    __skipSessionSync?: boolean
+  }
+}
 
 function navClass(isActive: boolean) {
   return [
@@ -11,13 +17,42 @@ function navClass(isActive: boolean) {
   ].join(' ')
 }
 
+function sessionsAreEqual(a: Session, b: Session) {
+  return (
+    a.userId === b.userId &&
+    a.displayName === b.displayName &&
+    a.isAuthenticated === b.isAuthenticated &&
+    a.onboardingCompleted === b.onboardingCompleted
+  )
+}
+
 export function RootLayout() {
   const { session } = useLoaderData() as { session: Session }
-  const setSession = useSessionStore((state) => state.setSession)
 
   useEffect(() => {
-    setSession(session)
-  }, [session, setSession])
+    if (typeof window !== 'undefined' && window.__skipSessionSync === true) {
+      return
+    }
+
+    const current = useSessionStore.getState()
+    const matches =
+      current.initialized &&
+      sessionsAreEqual(
+        {
+          userId: current.userId,
+          displayName: current.displayName,
+          isAuthenticated: current.isAuthenticated,
+          onboardingCompleted: current.onboardingCompleted,
+        },
+        session,
+      )
+
+    if (matches) {
+      return
+    }
+
+    current.setSession(session)
+  }, [session])
 
   return (
     <div className='min-h-screen bg-surface text-foreground'>
@@ -29,17 +64,20 @@ export function RootLayout() {
           </div>
           <div className='flex items-center gap-6'>
             <nav className='flex items-center gap-4 text-sm font-medium text-muted'>
-              <NavLink to='/today' className={({ isActive }) => navClass(isActive)}>
+              <NavLink to='/today' data-testid='nav-today' className={({ isActive }) => navClass(isActive)}>
                 오늘의 질문
               </NavLink>
-              <NavLink to='/history' className={({ isActive }) => navClass(isActive)}>
+              <NavLink to='/history' data-testid='nav-history' className={({ isActive }) => navClass(isActive)}>
                 답변 히스토리
               </NavLink>
-              <NavLink to='/onboarding' className={({ isActive }) => navClass(isActive)}>
+              <NavLink to='/onboarding' data-testid='nav-onboarding' className={({ isActive }) => navClass(isActive)}>
                 온보딩
               </NavLink>
             </nav>
-            <div className='rounded-full border border-divider px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted'>
+            <div
+              data-testid='user-badge'
+              className='rounded-full border border-divider px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted'
+            >
               {session.displayName}
             </div>
           </div>

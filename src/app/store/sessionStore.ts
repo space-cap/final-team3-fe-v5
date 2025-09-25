@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 import type { Session } from '../api/session'
@@ -16,6 +16,25 @@ const initialState: Session = {
   onboardingCompleted: false,
 }
 
+function normalizeSession(session: Session): Session {
+  return {
+    userId: session.userId ?? '',
+    displayName: session.displayName ?? '게스트',
+    isAuthenticated: Boolean(session.isAuthenticated),
+    onboardingCompleted: Boolean(session.onboardingCompleted),
+  }
+}
+
+function sessionsAreEqual(a: SessionState, b: Session): boolean {
+  const normalized = normalizeSession(b)
+  return (
+    a.userId === normalized.userId &&
+    a.displayName === normalized.displayName &&
+    a.isAuthenticated === normalized.isAuthenticated &&
+    a.onboardingCompleted === normalized.onboardingCompleted
+  )
+}
+
 const memoryStorage: Storage = {
   getItem: () => null,
   setItem: () => undefined,
@@ -30,18 +49,35 @@ const memoryStorage: Storage = {
 export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
-      ...initialState,
+      ...normalizeSession(initialState),
       initialized: false,
       setSession: (session) =>
-        set(() => ({
-          ...session,
-          initialized: true,
-        })),
+        set(
+          (prev) => {
+            const next = normalizeSession(session)
+            if (sessionsAreEqual(prev, next) && prev.initialized) {
+              return prev
+            }
+
+            return {
+              ...prev,
+              ...next,
+              initialized: true,
+            }
+          }),
       resetSession: () =>
-        set(() => ({
-          ...initialState,
-          initialized: true,
-        })),
+        set(
+          (prev) => {
+            if (sessionsAreEqual(prev, initialState) && prev.initialized) {
+              return prev
+            }
+
+            return {
+              ...prev,
+              ...normalizeSession(initialState),
+              initialized: true,
+            }
+          }),
     }),
     {
       name: 'session-store-v1',
