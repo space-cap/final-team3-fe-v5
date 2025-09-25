@@ -9,9 +9,11 @@ type SessionState = Session & {
   resetSession: () => void
 }
 
+const SESSION_FALLBACK_NAME = '게스트'
+
 const initialState: Session = {
   userId: '',
-  displayName: '게스트',
+  displayName: SESSION_FALLBACK_NAME,
   isAuthenticated: false,
   onboardingCompleted: false,
 }
@@ -19,7 +21,7 @@ const initialState: Session = {
 function normalizeSession(session: Session): Session {
   return {
     userId: session.userId ?? '',
-    displayName: session.displayName ?? '게스트',
+    displayName: session.displayName?.trim() ? session.displayName : SESSION_FALLBACK_NAME,
     isAuthenticated: Boolean(session.isAuthenticated),
     onboardingCompleted: Boolean(session.onboardingCompleted),
   }

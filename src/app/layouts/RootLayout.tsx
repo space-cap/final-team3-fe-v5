@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { NavLink, Outlet, useLoaderData } from 'react-router-dom'
 
 import type { Session } from '../api/session'
@@ -17,20 +17,52 @@ function navClass(isActive: boolean) {
   ].join(' ')
 }
 
+const SESSION_FALLBACK_NAME = '게스트'
+
+function normalizeSessionShape(session: Session): Session {
+  return {
+    userId: session.userId ?? '',
+    displayName: session.displayName?.trim() ? session.displayName : SESSION_FALLBACK_NAME,
+    isAuthenticated: Boolean(session.isAuthenticated),
+    onboardingCompleted: Boolean(session.onboardingCompleted),
+  }
+}
+
 function sessionsAreEqual(a: Session, b: Session) {
+  const normalizedA = normalizeSessionShape(a)
+  const normalizedB = normalizeSessionShape(b)
   return (
-    a.userId === b.userId &&
-    a.displayName === b.displayName &&
-    a.isAuthenticated === b.isAuthenticated &&
-    a.onboardingCompleted === b.onboardingCompleted
+    normalizedA.userId === normalizedB.userId &&
+    normalizedA.displayName === normalizedB.displayName &&
+    normalizedA.isAuthenticated === normalizedB.isAuthenticated &&
+    normalizedA.onboardingCompleted === normalizedB.onboardingCompleted
   )
+}
+
+function createSessionSignature(session: Session): string {
+  return [
+    session.userId,
+    session.displayName,
+    session.isAuthenticated ? '1' : '0',
+    session.onboardingCompleted ? '1' : '0',
+  ].join('|')
 }
 
 export function RootLayout() {
   const { session } = useLoaderData() as { session: Session }
+  const normalizedSession = useMemo(
+    () => normalizeSessionShape(session),
+    [session.userId, session.displayName, session.isAuthenticated, session.onboardingCompleted],
+  )
+  const lastSyncedSignatureRef = useRef<string>('')
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.__skipSessionSync === true) {
+      return
+    }
+
+    const signature = createSessionSignature(normalizedSession)
+    if (lastSyncedSignatureRef.current === signature) {
       return
     }
 
@@ -44,15 +76,17 @@ export function RootLayout() {
           isAuthenticated: current.isAuthenticated,
           onboardingCompleted: current.onboardingCompleted,
         },
-        session,
+        normalizedSession,
       )
 
     if (matches) {
+      lastSyncedSignatureRef.current = signature
       return
     }
 
-    current.setSession(session)
-  }, [session])
+    current.setSession(normalizedSession)
+    lastSyncedSignatureRef.current = signature
+  }, [normalizedSession])
 
   return (
     <div className='min-h-screen bg-surface text-foreground'>
@@ -78,7 +112,7 @@ export function RootLayout() {
               data-testid='user-badge'
               className='rounded-full border border-divider px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted'
             >
-              {session.displayName}
+              {normalizedSession.displayName}
             </div>
           </div>
         </div>
