@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLoaderData } from 'react-router-dom'
 
 import type { Session } from '../api/session'
@@ -52,9 +52,28 @@ export function RootLayout() {
   const { session } = useLoaderData() as { session: Session }
   const normalizedSession = useMemo(
     () => normalizeSessionShape(session),
-    [session.userId, session.displayName, session.isAuthenticated, session.onboardingCompleted],
+    [session],
   )
+  const [navBlockedMessage, setNavBlockedMessage] = useState<string | null>(null)
+
+  const handleProtectedNavClick = (event: MouseEvent<HTMLAnchorElement>, label: string) => {
+    if (normalizedSession.onboardingCompleted) {
+      setNavBlockedMessage(null)
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    setNavBlockedMessage(`온보딩을 완료하면 ${label} 페이지로 이동할 수 있어요.`)
+  }
+
   const lastSyncedSignatureRef = useRef<string>('')
+
+  useEffect(() => {
+    if (normalizedSession.onboardingCompleted) {
+      setNavBlockedMessage(null)
+    }
+  }, [normalizedSession.onboardingCompleted])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.__skipSessionSync === true) {
@@ -98,10 +117,36 @@ export function RootLayout() {
           </div>
           <div className='flex items-center gap-6'>
             <nav className='flex items-center gap-4 text-sm font-medium text-muted'>
-              <NavLink to='/today' data-testid='nav-today' className={({ isActive }) => navClass(isActive)}>
+              <NavLink
+                to='/today'
+                data-testid='nav-today'
+                aria-disabled={!normalizedSession.onboardingCompleted}
+                onClick={(event) => handleProtectedNavClick(event, '오늘의 질문')}
+                className={({ isActive }) =>
+                  [
+                    navClass(isActive),
+                    !normalizedSession.onboardingCompleted ? 'cursor-not-allowed opacity-60' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                }
+              >
                 오늘의 질문
               </NavLink>
-              <NavLink to='/history' data-testid='nav-history' className={({ isActive }) => navClass(isActive)}>
+              <NavLink
+                to='/history'
+                data-testid='nav-history'
+                aria-disabled={!normalizedSession.onboardingCompleted}
+                onClick={(event) => handleProtectedNavClick(event, '답변 히스토리')}
+                className={({ isActive }) =>
+                  [
+                    navClass(isActive),
+                    !normalizedSession.onboardingCompleted ? 'cursor-not-allowed opacity-60' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                }
+              >
                 답변 히스토리
               </NavLink>
               <NavLink to='/onboarding' data-testid='nav-onboarding' className={({ isActive }) => navClass(isActive)}>
@@ -116,6 +161,11 @@ export function RootLayout() {
             </div>
           </div>
         </div>
+        {navBlockedMessage ? (
+          <p className='mx-auto mt-2 max-w-5xl px-6 text-xs text-primary'>
+            {navBlockedMessage}
+          </p>
+        ) : null}
       </header>
 
       <main className='mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10'>

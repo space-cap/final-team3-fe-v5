@@ -24,6 +24,7 @@ export function OnboardingPage() {
   const [initialReflection, setInitialReflection] = useState<string>('')
   const [formErrors, setFormErrors] = useState<Record<string, string | null>>({})
 
+  const reflectionCharacterCount = initialReflection.trim().length
   const allCompleted = useMemo(() => data?.steps.every((step) => step.completed) ?? false, [data])
   const isSubmitting = completeStepMutation.isPending
 
@@ -233,11 +234,12 @@ export function OnboardingPage() {
             className='space-y-3'
             onSubmit={(event) => {
               event.preventDefault()
-              if (initialReflection.trim().length < 20) {
-                updateFormError(stepId, '20자 이상으로 첫 답변을 작성해 주세요.')
+              const normalizedReflection = initialReflection.trim()
+              if (normalizedReflection.length < 50) {
+                updateFormError(stepId, '50자 이상으로 첫 답변을 작성해 주세요.')
                 return
               }
-              handleStepComplete(stepId, { reflection: initialReflection.trim() })
+              handleStepComplete(stepId, { reflection: normalizedReflection })
             }}
           >
             <label htmlFor='first-reflection' className='text-xs font-semibold text-muted'>
@@ -253,14 +255,14 @@ export function OnboardingPage() {
             />
 
             <div className='flex items-center justify-between text-xs text-muted'>
-              <span>{initialReflection.trim().length}자</span>
+              <span className={reflectionCharacterCount < 50 ? 'text-red-500' : undefined}>{reflectionCharacterCount}자 / 최소 50자</span>
               {formErrors[stepId] ? <p className='text-xs text-red-500'>{formErrors[stepId]}</p> : null}
             </div>
 
             <button
               type='submit'
               data-testid='submit-step-3'
-              disabled={isSubmitting}
+              disabled={isSubmitting || reflectionCharacterCount < 50}
               className='rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60'
             >
               첫 답변 저장
